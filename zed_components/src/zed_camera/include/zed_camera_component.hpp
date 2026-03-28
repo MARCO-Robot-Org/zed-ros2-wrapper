@@ -270,7 +270,7 @@ private:
   std::string mBodyTrkTopic;
   std::string mOdomPathTopic;
   std::string mPosePathTopic;
-  std::string mClickedPtTopic;  // Clicked point
+  std::string mClickedPtTopic = "/clicked_point";  // Clicked point
   std::string mRoiMaskTopic;
   // <---- Topics
 

@@ -15,6 +15,8 @@
 import os
 import sys
 
+import yaml
+
 from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
@@ -67,6 +69,32 @@ def parse_array_param(param):
     arr = str.split(',')
 
     return arr
+
+
+def flatten_ros_params(yaml_path):
+    """Read a `<node>: ros__parameters:` YAML file into a flat {'group.param': value} dict.
+
+    ROS 2 Foxy's launch_ros passes a ComposableNode's parameter files through
+    `to_parameters_list`, which does not strip the `/**` / `ros__parameters` levels: every
+    parameter arrives as `/**.ros__parameters.<group>.<param>`, the node never sees it and runs
+    on its C++ defaults. Passing the flattened dict works on every distro.
+    """
+    with open(yaml_path, 'r') as f:
+        data = yaml.safe_load(f) or {}
+
+    params = {}
+
+    def _flatten(prefix, value):
+        if isinstance(value, dict):
+            for key, val in value.items():
+                _flatten(prefix + str(key) + '.', val)
+        else:
+            params[prefix[:-1]] = value
+
+    for node_params in data.values():
+        if isinstance(node_params, dict) and 'ros__parameters' in node_params:
+            _flatten('', node_params['ros__parameters'])
+    return params
 
 
 def launch_setup(context, *args, **kwargs):
@@ -231,15 +259,15 @@ def launch_setup(context, *args, **kwargs):
         return_array.append(zed_container)
 
     # ZED Node parameters
+    # YAML files, flattened so they also apply on Foxy (see flatten_ros_params)
     node_parameters = [
-            # YAML files
-            config_common_path_val,  # Common parameters
-            config_camera_path,  # Camera related parameters
-            config_ffmpeg # FFMPEG parameters
+            flatten_ros_params(config_common_path_val),  # Common parameters
+            flatten_ros_params(config_camera_path),  # Camera related parameters
+            flatten_ros_params(config_ffmpeg.perform(context)) # FFMPEG parameters
     ]
 
     if( ros_params_override_path_val != ''):
-        node_parameters.append(ros_params_override_path)
+        node_parameters.append(flatten_ros_params(ros_params_override_path_val))
 
     node_parameters.append( 
             # Launch arguments must override the YAML files values

@@ -64,7 +64,7 @@
             apply_to_spatial_mapping: true # Apply ROI to spatial mapping processing
 
         depth:
-            depth_mode: 'NEURAL_LIGHT' # Matches the ZED SDK setting: 'NONE', 'PERFORMANCE', 'QUALITY', 'ULTRA', 'NEURAL', 'NEURAL_PLUS' - Note: if 'NONE' all the modules that requires depth extraction are disabled by default (Pos. Tracking, Obj. Detection, Mapping, ...)
+            depth_mode: 'NEURAL' # [MS: was 'NEURAL_LIGHT', not an SDK 4.2 mode, it fell back to PERFORMANCE] Matches the ZED SDK setting: 'NONE', 'PERFORMANCE', 'QUALITY', 'ULTRA', 'NEURAL', 'NEURAL_PLUS' - Note: if 'NONE' all the modules that requires depth extraction are disabled by default (Pos. Tracking, Obj. Detection, Mapping, ...)
             depth_stabilization: 30 # Forces positional tracking to start if major than 0 - Range: [0,100]
             openni_depth_mode: false # 'false': 32bit float [meters], 'true': 16bit unsigned int [millimeters]
             point_cloud_freq: 30.0 # [DYNAMIC] - frequency of the pointcloud publishing (equal or less to `pub_frame_rate` value)
@@ -75,7 +75,7 @@
 
         pos_tracking:
             pos_tracking_enabled: true # True to enable positional tracking from start
-            pos_tracking_mode: 'GEN_1' # Matches the ZED SDK setting: 'GEN_1', 'GEN_2'
+            pos_tracking_mode: 'GEN_1' # [MS: must match ms_camera zed_area_mapping --mode; GEN_2 segfaults in SDK 4.2.5 (IOFTRACKER::KeyFrame::GetMap) on map reset/relocalization] Matches the ZED SDK setting: 'GEN_1', 'GEN_2'
             imu_fusion: true # enable/disable IMU fusion. When set to false, only the optical odometry will be used.
             publish_tf: true # [usually overwritten by launch file] publish `odom -> camera_link` TF
             publish_map_tf: true # [usually overwritten by launch file] publish `map -> odom` TF
@@ -108,8 +108,8 @@
             enable_rolling_calibration: true # If this parameter is set to true, the fusion algorithm will used a rough VIO / GNSS calibration at first and then refine it. This allow you to quickly get a fused position.
             enable_translation_uncertainty_target: false # When this parameter is enabled (set to true), the calibration process between GNSS and VIO accounts for the uncertainty in the determined translation, thereby facilitating the calibration termination. The maximum allowable uncertainty is controlled by the 'target_translation_uncertainty' parameter.
             gnss_vio_reinit_threshold: 5.0 # determines the threshold for GNSS/VIO reinitialization. If the fused position deviates beyond out of the region defined by the product of the GNSS covariance and the gnss_vio_reinit_threshold, a reinitialization will be triggered.
-            target_translation_uncertainty: 10e-2 # defines the target translation uncertainty at which the calibration process between GNSS and VIO concludes. By default, the threshold is set at 10 centimeters.
-            target_yaw_uncertainty: 1e-2 # defines the target yaw uncertainty at which the calibration process between GNSS and VIO concludes. The unit of this parameter is in radian. By default, the threshold is set at 0.1 radians.
+            target_translation_uncertainty: 0.1 # [MS: was 10e-2, a string for PyYAML] defines the target translation uncertainty at which the calibration process between GNSS and VIO concludes. By default, the threshold is set at 10 centimeters.
+            target_yaw_uncertainty: 0.01 # [MS: was 1e-2, a string for PyYAML] defines the target yaw uncertainty at which the calibration process between GNSS and VIO concludes. The unit of this parameter is in radian. By default, the threshold is set at 0.1 radians.
 
         mapping:
             mapping_enabled: false # True to enable mapping and fused point cloud pubblication
